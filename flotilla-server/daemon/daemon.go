@@ -18,6 +18,7 @@ import (
 	"github.com/tylertreat/Flotilla/flotilla-server/daemon/broker/nats"
 	"github.com/tylertreat/Flotilla/flotilla-server/daemon/broker/nsq"
 	"github.com/tylertreat/Flotilla/flotilla-server/daemon/broker/pubsub"
+	"github.com/tylertreat/Flotilla/flotilla-server/daemon/broker/vessel"
 )
 
 type daemon string
@@ -43,6 +44,7 @@ const (
 	RabbitMQ    = "rabbitmq"
 	NSQ         = "nsq"
 	CloudPubSub = "pubsub"
+	Vessel      = "vessel"
 )
 
 type request struct {
@@ -237,6 +239,8 @@ func (d *Daemon) processBrokerStart(broker, host, port string) (interface{}, err
 			ProjectID: d.config.GoogleCloudProjectID,
 			JSONKey:   d.config.GoogleCloudJSONKey,
 		}
+	case Vessel:
+		d.broker = &vessel.Broker{}
 	default:
 		return "", fmt.Errorf("Invalid broker %s", broker)
 	}
@@ -366,6 +370,8 @@ func (d *Daemon) newPeer(broker, host string) (peer, error) {
 			d.config.GoogleCloudProjectID,
 			d.config.GoogleCloudJSONKey,
 		)
+	case Vessel:
+		return vessel.NewPeer(host)
 	default:
 		return nil, fmt.Errorf("Invalid broker: %s", broker)
 	}
