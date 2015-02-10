@@ -35,6 +35,7 @@ var brokers = []string{
 	"rabbitmq",
 	"nsq",
 	"pubsub",
+	"vessel",
 }
 
 func main() {
