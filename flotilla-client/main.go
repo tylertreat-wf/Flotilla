@@ -90,6 +90,7 @@ func runBenchmark(client *broker.Client) ([]*broker.ResultContainer, error) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-sig
+		fmt.Println("\nShutting down...")
 		client.Teardown()
 		os.Exit(1)
 	}()
