@@ -2,6 +2,7 @@ package vessel
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -24,10 +25,16 @@ func (b *Broker) Start(host, port string) (interface{}, error) {
 		return nil, err
 	}
 	b.proc = cmd.Process
+	log.Printf("Started Vessel PID: %d", b.proc.Pid)
 	return "", nil
 }
 
 func (b *Broker) Stop() (interface{}, error) {
 	err := b.proc.Kill()
+	if err != nil {
+		log.Printf("Failed to stop Vessel PID: %d", b.proc.Pid)
+	} else {
+		log.Printf("Stopped Vessel PID: %d", b.proc.Pid)
+	}
 	return "", err
 }

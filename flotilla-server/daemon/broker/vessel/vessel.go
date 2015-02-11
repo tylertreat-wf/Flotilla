@@ -12,12 +12,13 @@ const channel = "global:test"
 
 // Peer implements the peer interface for Vessel brokers.
 type Peer struct {
-	transport vessel.Transport
-	messages  chan []byte
-	send      chan []byte
-	errors    chan error
-	done      chan bool
-	stop      chan bool
+	transport  vessel.Transport
+	messages   chan []byte
+	send       chan []byte
+	errors     chan error
+	done       chan bool
+	stop       chan bool
+	subscriber bool
 }
 
 // NewPeer creates and returns a new Peer for communicating with Vessel
@@ -41,26 +42,33 @@ func NewPeer(host string) (*Peer, error) {
 
 // Subscribe prepares the peer to consume messages.
 func (p *Peer) Subscribe() error {
+	p.subscriber = true
 	subscription, err := p.transport.Subscribe(channel)
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		select {
-		case msg := <-subscription:
-			p.messages <- msg
-		case <-p.stop:
-			return
+		for {
+			select {
+			case msg := <-subscription:
+				p.messages <- msg
+			case <-p.stop:
+				return
+			}
 		}
 	}()
 
 	return nil
 }
 
+var x = 0
+
 // Recv returns a single message consumed by the peer. Subscribe must be called
 // before this. It returns an error if the receive failed.
 func (p *Peer) Recv() ([]byte, error) {
+	//x++
+	//fmt.Println(x)
 	return <-p.messages, nil
 }
 
@@ -98,6 +106,8 @@ func (p *Peer) Setup() {
 // Teardown performs any cleanup logic that needs to be performed after the
 // test is complete.
 func (p *Peer) Teardown() {
-	p.stop <- true
+	if p.subscriber {
+		p.stop <- true
+	}
 	p.transport.Close()
 }
