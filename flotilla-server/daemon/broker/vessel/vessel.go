@@ -52,7 +52,12 @@ func (p *Peer) Subscribe() error {
 		for {
 			select {
 			case msg := <-subscription:
-				p.messages <- msg
+				select {
+				case p.messages <- msg:
+				default:
+					<-p.stop
+					return
+				}
 			case <-p.stop:
 				return
 			}
@@ -62,13 +67,9 @@ func (p *Peer) Subscribe() error {
 	return nil
 }
 
-var x = 0
-
 // Recv returns a single message consumed by the peer. Subscribe must be called
 // before this. It returns an error if the receive failed.
 func (p *Peer) Recv() ([]byte, error) {
-	//x++
-	//fmt.Println(x)
 	return <-p.messages, nil
 }
 
